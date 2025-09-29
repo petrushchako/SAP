@@ -1,3 +1,6 @@
+# Documentation:
+# https://github.com/marketplace/actions/cloud-foundry-cli-github-action
+
 name: Deploy to CF
 on:
     push:
