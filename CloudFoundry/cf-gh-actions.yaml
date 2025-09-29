@@ -1,0 +1,17 @@
+name: Deploy to CF
+on:
+    push:
+        branches:
+            [main]
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: elliottpope/cloudfoundry-cli-action@v6
+          with:
+            CF_API: https://api.my-cloud-foundry.com
+            USERNAME: ${{ secrets.CF_USER }}
+            PASSWORD: ${{ secrets.CF_PASSWORD }}
+            ORG: my-org
+            SPACE: dev
+            COMMAND: push my-app
