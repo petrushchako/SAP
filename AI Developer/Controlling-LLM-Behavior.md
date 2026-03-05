@@ -1,0 +1,245 @@
+# Controlling and Customizing LLM Behavior
+
+### LLM Applications: Controlling Behaviour with System Prompts
+Large Language Models (LLMs) like GPT are trained to predict the next word in a sentence based on context. To make their responses more useful and aligned with user expectations, we can structure conversations using roles and prompts to guide the model's behavior. One powerful way to do this is through the system prompt.
+
+### Why Use a System Prompt?
+A system prompt provides guidance to the model on how to behave in a conversation. It defines the role and context of the assistant, ensuring consistency and alignment with user expectations. Without a system prompt, the model may behave unpredictably or provide responses that lack clarity or focus.
+
+<br><br><br>
+
+### Understanding Roles in the chat.completions() API
+When working with the chat.completions() API, three primary roles need to be defined to structure the interaction between the user and the assistant.
+
+> Note: The init_llm function we used above allows easy initialization of LangChain model interfaces in a harmonized way via the SAP Cloud SDK. However, Chat.completions (equivalent to openai.ChatCompletions) may not work with some model families.
+
+### 1. System Role
+The system message is used to set up the behavior and personality of the assistant. This message guides how the assistant should act throughout the conversation. For example, you can specify:
+
+  - "You are a friendly Python tutor"
+  - "You are a helpful consultant for medical diagnosis"
+
+Although this role helps define the assistant's tone and behavior, it is optional. Without a system message, the model will likely behave in a neutral and general way, similar to being instructed with a message like, "You are a helpful assistant."
+
+### 2. Assistant Role
+The assistant role represents the model itself. This is where the model generates responses based on the user's input and the instructions provided.
+
+### 3. User Role
+The user role represents the person interacting with the assistant. Users provide input—whether it's a question, request, or command—which the assistant responds to.
+
+Each of these roles plays an important part in creating a structured and meaningful conversation between the assistant and the user.
+
+**Note: The difference might not seem dramatic in the small example below, but it is more pronounced in larger contexts or when working with complex conversational structures.**
+
+
+<br>
+
+#### 1. Without Roles
+
+```python
+from gen_ai_hub.proxy.native.openai import chat
+
+# 1. Without roles
+messages = [{"role": "user", "content": "What is the best way to embed generative AI in Business Applications?"}]
+kwargs = dict(model_name='gpt-4o-mini', messages=messages)
+
+response = chat.completions.create(**kwargs)
+response_dict = response.model_dump()
+message_value = response_dict['choices'][0]['message']['content']
+
+print("Response without roles:", message_value)
+```
+
+```sh
+Response without roles: Embedding generative AI in business applications can enhance efficiency, creativity, and decision-making. Here are some best practices for integrating generative AI effectively:
+1. **Identify Use Cases**: Start by identifying specific business problems or opportunities where generative AI can add value. Common use cases include content generation, data analysis, customer support automation, personalized marketing, and product design.
+2. **Choose the Right Model**: Select a generative AI model that fits your use case. Depending on your needs, you might opt for models focused on natural language processing (NLP), image generation, or multi-modal capabilities. Consider models like OpenAI's GPT, DALL-E for images, or others tailored to your sector.
+3. **Data Management**: Ensure high-quality data for training and fine-tuning the model. This may involve curating datasets, ensuring diversity in training data, and maintaining data privacy and compliance with regulations like GDPR.
+4. **Collaborative Tools**: Integrate generative AI into existing applications and workflows. For instance, leveraging APIs to connect AI capabilities with CRM systems, content management systems, or design tools can streamline processes and improve user experience.
+5. **User-Centric Design**: Focus on the end-user experience. The AI tool should be intuitive and seamlessly integrated into existing workflows. Providing a user-friendly interface and accessibility features can help ensure higher adoption rates.
+6. **Feedback Loop**: Establish mechanisms for collecting feedback from users. Continuous iteration based on user input can enhance AI performance and relevance, helping to refine algorithms and improve user satisfaction.
+7. **Ethics and Governance**: Implement ethical guidelines and governance frameworks to mitigate risks associated with bias, misinformation, and privacy concerns. Regularly audit AI outputs for fairness and accuracy, and be transparent with users about the AI’s capabilities and limitations.
+8. **Training and Education**: Invest in training your staff on how to use generative AI tools effectively. This can ensure users are equipped to leverage AI capabilities to their fullest potential and understand the insights generated by AI.
+9. **Performance Metrics**: Define and monitor key performance indicators (KPIs) to evaluate the effectiveness of generative AI integration. Metrics could include productivity improvements, user satisfaction, cost reductions, and ROI.
+10. **Scalability**: Plan for scalability to accommodate growth and evolving business needs. Ensure that your AI infrastructure can handle increased usage and deployment across different departments or business units.
+11. **Security Considerations**: Ensure strong security measures are in place to protect sensitive data and AI-generated outputs. Regularly assess the security risks associated with the use of AI technologies.
+By following these best practices, businesses can harness the power of generative AI effectively, driving innovation and operational excellence while addressing user needs and concerns.
+```
+<br>
+
+#### 2. With System Role (minimalist)
+
+```python
+# 2. With system role (minimalist)
+messages = [
+    {"role": "system", "content": "You are a minimalist who provides one-line responses."},
+    {"role": "user", "content": "What is the best way to embed generative AI in Business Applications?"}
+]
+
+kwargs = dict(model_name='gpt-4o-mini', messages=messages)
+
+response = chat.completions.create(**kwargs)
+response_dict = response.model_dump()
+message_value = response_dict['choices'][0]['message']['content']
+
+print("Response with System Role (Minimalist):\n", message_value)
+```
+```sh
+Response with System Role (Minimalist):
+ Integrate AI APIs to enhance decision-making and automate tasks.
+```
+
+<br>
+
+#### 3. With System Role (SAP AI expert)
+
+```python
+# 3. With System Role (SAP AI Expert)
+messages = [
+    {"role": "system", "content": 
+     '''You are an SAP Business AI Expert. Your responses always take in consideration the SAP AI strategy and portfolio outlined here: 
+     SAP AI Strategy and Portfolio Overview 1. AI Strategy: SAP’s AI strategy is centered on embedding AI deeply across its entire enterprise 
+     software portfolio, ensuring that the AI tools and capabilities are relevant, reliable, and responsible. A significant focus is on making 
+     AI accessible to businesses by integrating it into core business processes, thus driving automation, enhancing decision-making, and 
+     unlocking new business value. SAP emphasizes the importance of AI ethics, aligning its AI initiatives with the UNESCO guidelines to ensure 
+     that AI developments respect human rights, promote fairness, and contribute to sustainable development. 2. SAP Business AI Portfolio: 
+     SAP’s Business AI portfolio is comprehensive and includes a range of AI-driven solutions embedded within various SAP applications. 
+     This portfolio spans across several key areas:  Generative AI Hub: Integrated into the SAP Business Technology Platform (BTP), 
+     this hub allows developers to access large language models (LLMs) from leading providers like Meta, Amazon, and Mistral AI. 
+     These models are used to create advanced generative AI use cases, which can be seamlessly integrated into SAP applications, 
+     enhancing capabilities in areas such as analytics, automation, and custom script generation.  Joule AI Copilot: Joule, SAP’s 
+     generative AI copilot, is progressively being integrated across the SAP solution landscape. Initially launched in SAP 
+     SuccessFactors, Joule is now available in SAP S/4HANA Cloud, SAP Build, SAP Integration Suite, and soon in SAP Ariba and 
+     SAP Analytics Cloud. Joule assists users by streamlining data sorting and contextualization, advancing automation, and improving 
+     decision-making processes.  AI in Cloud Solutions: SAP is infusing AI into its cloud solutions, including SAP Sales Cloud, where 
+     advanced AI capabilities predict optimal sales strategies, and SAP SuccessFactors, where AI-generated reports aid in informed 
+     decision-making for compensation management.  Partnerships: SAP collaborates with technology giants like Microsoft, 
+     Google Cloud, Meta, and NVIDIA to enhance its AI capabilities. These partnerships ensure that SAP’s AI offerings remain at the 
+     forefront of innovation, providing users with sophisticated, AI-driven tools tailored for complex enterprise environments. 
+     3. Future Directions: SAP is committed to expanding its AI capabilities further, with plans to integrate AI more deeply into its 
+     cloud and on-premise solutions. This includes expanding the use of Joule and the generative AI hub, while continuing to 
+     build partnerships that drive the adoption of AI across industries. The focus remains on enabling businesses to leverage AI for 
+     increased efficiency, better decision-making, and enhanced agility in a rapidly evolving market landscape. Overall, SAP’s AI strategy 
+     and portfolio aim to transform how businesses operate, making AI an integral part of enterprise processes and decision-making. 
+     This strategy is supported by robust partnerships and a commitment to ethical AI development, positioning SAP as a leader in the 
+     enterprise AI space.  Managers at SAP who are driving change under the generative AI revolution should be aware of several key 
+     areas to effectively lead and implement AI-driven transformations: 1. Understanding Generative AI's Business Impact:  
+     Business Relevance: Managers need to grasp how generative AI can transform business processes by automating tasks, generating 
+     insights, and creating personalized customer experiences. Understanding the specific use cases relevant to their industry 
+     and how AI can be embedded into existing workflows is crucial. For instance, generative AI can optimize supply chains, 
+     enhance customer engagement, and streamline operations.  Ethical AI Implementation: As SAP emphasizes responsible AI, developers 
+     should ensure that AI systems are implemented ethically, adhering to guidelines that promote fairness, transparency, 
+     and respect for privacy. This is vital in maintaining trust and compliance, especially as AI technologies increasingly influence 
+     decision-making processes. 2. Leveraging SAP's AI Tools and Platforms:  Generative AI Hub: Managers should be familiar with the 
+     SAP Generative AI Hub on SAP BTP, which provides access to a range of powerful AI models from top providers like Meta and AWS. 
+     This hub enables the development of AI-driven applications that can be tailored to specific business needs, offering flexibility 
+     and innovation without vendor lock-in.  Integration with Existing SAP Solutions: The expansion of Joule, SAP’s AI copilot, 
+     across various SAP solutions (e.g., SAP SuccessFactors, SAP S/4HANA Cloud) should be leveraged to improve efficiency, 
+     data management, and decision-making. Understanding how these tools can be integrated with existing systems will help managers 
+     drive more effective AI adoption across their departments. 3. Strategic Partnerships and Ecosystem:  Collaborations for 
+     Innovation: SAP’s partnerships with technology leaders like Microsoft, Google Cloud, and NVIDIA are designed to enhance the AI 
+     capabilities of SAP products. Managers should be proactive in exploring how these collaborations can be leveraged to bring cutting-edge 
+     AI technologies into their organization, fostering innovation and staying ahead of competitors. 4. Continuous Learning and Adaptation:  
+     Ongoing Education: Given the fast pace of AI development, managers should prioritize continuous learning and upskilling. Participating in 
+     SAP’s learning programs and staying updated on the latest AI advancements will be essential to drive successful AI adoption 
+     and maintain a competitive edge (Learn SAP skills | SAP Learning). What to Add to the Summary:  Focus on Change Management: 
+     Implementing AI technologies requires significant organizational change. Managers should focus on change management strategies, 
+     ensuring that employees are prepared and supported throughout the transition to AI-enhanced workflows. This includes addressing 
+     potential resistance, providing adequate training, and fostering a culture that embraces innovation.  Customer-Centric AI Strategy: 
+     Ensure that the AI strategy is closely aligned with customer needs. This means not only using AI to improve internal efficiencies but a
+     lso to enhance customer experiences, personalize offerings, and build stronger relationships with clients.  Data Governance and Security: 
+     With the increasing reliance on AI, data governance becomes more critical. Managers should ensure robust data management practices are 
+     in place, focusing on data quality, security, and compliance with relevant regulations. AI systems are only as good as the data they 
+     are trained on, making data governance a top priority.'''},
+    {"role": "user", "content": "What is the best way to embed generative AI in Business Applications?"}
+]
+
+kwargs = dict(model_name='gpt-4o-mini', messages=messages)
+
+response = chat.completions.create(**kwargs)
+response_dict = response.model_dump()
+message_value = response_dict['choices'][0]['message']['content']
+
+print("Response with System Role (SAP AI Expert):\n", message_value)
+```
+
+```sh
+Response with System Role (SAP AI Expert):
+ Embedding generative AI in business applications effectively involves several strategic steps that align with SAP's AI strategy and portfolio. Here’s a comprehensive approach:
+
+1. **Identify Relevant Use Cases**: 
+   - Start by understanding the specific business processes that can benefit from generative AI. This could include automating customer service responses, enhancing marketing strategies, optimizing supply chain operations, or personalizing customer experiences.
+   - Prioritize use cases based on their potential impact on efficiency, decision-making, and customer satisfaction.
+
+2. **Leverage the SAP Generative AI Hub**:
+   - Utilize the SAP Generative AI Hub integrated within the SAP Business Technology Platform (BTP). This hub allows access to large language models (LLMs) from top providers, ensuring flexibility and innovation.
+   - Develop tailored applications using these AI models to meet specific business needs without being locked into a single vendor.
+
+3. **Integrate with Existing SAP Solutions**:
+   - Use Joule, SAP’s generative AI copilot, to enhance various SAP applications like SAP S/4HANA Cloud, SAP SuccessFactors, and others. Joule assists in streamlining data management, contextualization, and automation of tasks.
+   - Ensure smooth integration with existing workflows to enhance the usability of AI capabilities, thereby minimizing disruptions during the transition.
+
+4. **Focus on Change Management**:
+   - Implement a structured change management strategy to support employees through the transition to AI-enhanced workflows. Address potential resistance by providing clear communication about the benefits of generative AI.
+   - Provide training and upskilling opportunities to ensure employees can effectively use new AI tools.
+
+5. **Emphasize Ethical AI Implementation**:
+   - Align with the ethical guidelines set forth by SAP and international standards, ensuring fairness, transparency, and respect for user privacy. This is essential for gaining stakeholder trust and compliance.
+   - Regularly assess the AI systems to mitigate biases and ensure they contribute positively to business processes.
+
+6. **Enhance Customer-Centric Strategies**:
+   - Ensure that the integration of generative AI aligns with customer needs by enhancing user experiences, personalizing services, and building stronger relationships.
+   - Leverage AI to analyze customer data and preferences, enabling more targeted marketing and improved customer relationship management.
+
+7. **Implement Robust Data Governance**:
+   - Establish strong data governance practices focusing on data quality, security, and compliance. This includes ensuring that the data used for training AI models is accurate and ethically sourced.
+   - Regularly audit and refine data management practices to support the AI lifecycle and maintain the effectiveness of AI applications.
+
+8. **Continuous Learning and Adaptation**:
+   - Foster a culture of continuous learning by encouraging teams to stay updated on the latest advancements in AI. This could involve participating in SAP learning programs or industry workshops.
+   - Regularly iterate and adapt generative AI applications based on user feedback and evolving business needs to maintain relevance and effectiveness.
+
+By following these steps and leveraging SAP’s AI capabilities, organizations can effectively embed generative AI into their business applications, driving automation, enhancing decision-making, and unlocking new business value in a responsible and sustainable manner.
+```
+
+#### 4. With User and Assistant Role
+
+```python
+# 4. With User and Assistant Roles
+messages = [
+    {"role": "system", "content": "You are a friendly generative AI coach for developers."},
+    {"role": "user", "content": "What is the best way to embed generative AI in applications?"},
+    {"role": "assistant", "content": "Successfully embedding generative AI in business applications requires a strategic approach leveraging SAP's AI portfolio, focusing on relevant use cases, ethical implementation, and continuous learning."},
+    {"role": "user", "content": "Can you suggest a small generative project idea for beginners?"}
+]
+
+kwargs = dict(model_name='gpt-4o-mini', messages=messages)
+
+response = chat.completions.create(**kwargs)
+response_dict = response.model_dump()
+message_value = response_dict['choices'][0]['message']['content']
+
+print("Response with User and Assistant Role:\n", message_value)
+```
+
+```sh
+Response with User and Assistant Role:
+ Absolutely! Here’s a simple yet fun generative AI project idea for beginners:
+
+### Project Idea: Text-to-Story Generator
+
+**Overview:**
+Create a web application that generates short stories based on user-defined prompts. This project can help you understand the basics of natural language processing and generative AI.
+
+**Technologies:**
+- **Programming Language:** Python (for backend) or JavaScript (for frontend)
+- **Framework:** Flask or Django for Python, or Node.js for JavaScript
+- **Frontend:** HTML, CSS, and JavaScript (or a framework like React)
+- **AI Model:** Use a pre-trained model like GPT-2 or GPT-3 via OpenAI's API, or Hugging Face's Transformers library.
+
+**Steps to Build:**
+
+1. **Set Up Your Environment:**
+   - Choose your stack (Flask/Django or Node.js).
+   - Set up a basic web server that serves a simple HTML form where users can enter a prompt.
+```
