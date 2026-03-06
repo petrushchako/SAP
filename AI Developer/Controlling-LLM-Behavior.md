@@ -327,4 +327,83 @@ In essence, embeddings enable LLMs to interpret text in a way that captures sema
 --------------------------------------------------------------------------------
 ```
 
-### 2.
+### 2. Adjusting Temperature
+The temperature parameter controls how creative or random the model’s responses are.
+
+A low temperature (0.0) makes the model deterministic — it always gives the same, safe answer.
+A medium temperature (0.7) adds some creativity while keeping the response coherent.
+A high temperature (1.0 or above) produces very creative, diverse outputs, but with more randomness.
+
+**Why is Temperature Important? Choosing the right temperature depends on your use case:**
+- **Low values (0–0.3)**: Great for factual, repeatable answers like database queries or coding help.
+- **Medium values (0.5–0.8)**: Best for creative tasks where you want variety but still need consistency.
+- **High values (0.9+)**: Useful for brainstorming, story generation, or poetry — where uniqueness matters more than precision.
+
+**Choosing the Right Temperature**
+- If you want accuracy and reliability → set temperature close to 0.0.
+- If you want varied but still meaningful outputs → try 0.5–0.8.
+- If you want wild creativity → go for 0.9–1.0.
+
+> Start with 0.7 as a balanced default for most creative tasks.
+
+
+Let’s see how this works in practice with a simple example: asking the model to write a short poem about the moon.
+
+```python
+ # Example 2: Adjusting Temperature
+
+messages=[
+            {"role": "system", "content": "You are a creative poet."},
+            {"role": "user", "content": "Write a short poem about the moon."}
+        ]
+
+def test_temperature(temperature):
+    kwargs = dict(model_name='gpt-4o-mini', messages=messages, max_tokens=50, temperature = temperature)
+
+    response = chat.completions.create(**kwargs)
+    response_dict = response.model_dump()
+    message_value = response_dict['choices'][0]['message']['content']
+    print(f"Temperature: {temperature}")
+    print("Response:", message_value)
+    print("\n" + "-"*80 + "\n")
+
+# Test with varying temperature values
+test_temperature(temperature=0.0)  # Deterministic response
+test_temperature(temperature=0.7)  # Balanced creativity
+test_temperature(temperature=1.0)  # High creativity and randomness
+```
+
+```sh
+Temperature: 0.0
+Response: In the velvet cloak of night,  
+The moon hangs low, a silver light,  
+Whispers secrets to the stars,  
+Guiding dreams from near to far.  
+
+A lantern in the darkened sky,  
+With craters deep and a
+
+--------------------------------------------------------------------------------
+
+Temperature: 0.7
+Response: In the velvet sky, a silver gleam,  
+The moon whispers softly, like a dream.  
+A lantern aloft in the night’s embrace,  
+Casting shadows with delicate grace.  
+
+She dances on waves, a shimmering light,  
+Guid
+
+--------------------------------------------------------------------------------
+
+Temperature: 1.0
+Response: In the velvet sky, so high and bright,  
+A silver jewel drapes the world in light.  
+Whispers of dreams in her gentle glow,  
+Night's silent guardian, soft and low.  
+
+Waves of the ocean, drawn by
+
+--------------------------------------------------------------------------------
+```
+
