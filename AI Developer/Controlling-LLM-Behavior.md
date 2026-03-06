@@ -243,3 +243,88 @@ Create a web application that generates short stories based on user-defined prom
    - Choose your stack (Flask/Django or Node.js).
    - Set up a basic web server that serves a simple HTML form where users can enter a prompt.
 ```
+
+<br><br><br>
+
+## Understanding the Parameters That Shape LLM Responses
+These parameters allow us to control the length, creativity, and focus of the model’s output. By adjusting them, we can fine-tune the behavior of the model to suit different tasks and use cases.
+
+- **Max Tokens**: Controls the length of the response. Try setting it to different values like 10, 50, or 100.
+- **Temperature**: Controls the randomness or creativity of the response.
+  - 0.0: Deterministic and focused responses.
+  - Higher values like 0.7-1.0: More creative and varied responses.
+- **Top-p (Nucleus Sampling)**: Limits the model to conisder only the most probable tokens while generating responses.
+  - Try 0.9 or 0.95 - Encourages diversity while maintaining relevance.
+ 
+<br>
+
+### 1. Controlling Response Length with 'max_tokens'
+When working with Large Language Models (LLMs), one of the most important parameters is max_tokens.
+This parameter sets the maximum number of tokens the model can generate in its response.
+
+Why does this matter?
+- **Too low**: The answer may be cut off mid-sentence and feel incomplete.
+- **Too high**: The model may generate unnecessarily long responses, wasting compute and increasing cost.
+- **Just right**: You get a complete, clear answer without overusing resources.
+
+**How to choose max_tokens**
+- Short responses (<30): Use for classification tasks, short answers, or quick confirmations.
+- Medium responses (30–100): Use for FAQs, explanations, or short summaries.
+- Long responses (100+): Use when you need detail — teaching, storytelling, or technical documentation.
+
+> A good practice: start with a reasonable estimate (e.g., 100 tokens for explanations) and adjust based on the task.
+Remember, tokens != words. One token is roughly ~4 characters in English, so 100 tokens is about 75 words.
+
+#### Example 1: Adjusting Max Tokens
+
+```python
+messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Explain the concept of embeddings in LLMs briefly."}
+        ]
+
+# Function to test different max_tokens values
+def test_max_tokens(max_tokens):
+    kwargs = dict(model_name='gpt-4o-mini', messages=messages, max_tokens=max_tokens)
+
+    response = chat.completions.create(**kwargs)
+    response_dict = response.model_dump()
+    message_value = response_dict['choices'][0]['message']['content']
+    print(f"Max Tokens: {max_tokens}")
+    print("Response:", message_value)
+    print("\n" + "-"*80 + "\n")
+
+# Test with varying max_tokens values
+test_max_tokens(max_tokens=10)   # Very short response
+test_max_tokens(max_tokens=100)   # Moderate-length response
+test_max_tokens(max_tokens=300)  # Longer response
+```
+
+```sh
+Max Tokens: 10
+Response: Embeddings in large language models (LLMs)
+
+--------------------------------------------------------------------------------
+
+Max Tokens: 100
+Response: Embeddings in Large Language Models (LLMs) refer to the mathematical representations of words, phrases, or sentences as high-dimensional vectors in a continuous vector space. These embeddings capture semantic relationships and contextual meanings, allowing the model to understand and process language more effectively.
+
+Key points about embeddings in LLMs:
+
+1. **Vector Representation**: Each word or token is represented as a dense vector. The dimensions of these vectors encode various linguistic features and relationships.
+
+2. **Contextual Information**: In
+
+--------------------------------------------------------------------------------
+
+Max Tokens: 300
+Response: Embeddings in large language models (LLMs) are numerical representations of words, phrases, or even entire sentences, designed to capture their meanings in a continuous vector space. Each embedding is typically a high-dimensional vector where similar meanings are mapped to nearby points. 
+
+The concept of embeddings allows LLMs to understand and process natural language effectively by transforming categorical data (like words) into a form that is usable for mathematical operations. This transformation helps the model to learn relationships, similarities, and context among words based on the data it has been trained on.
+
+In essence, embeddings enable LLMs to interpret text in a way that captures semantic relationships and contextual information, which is crucial for tasks like language generation, sentiment analysis, and more.
+
+--------------------------------------------------------------------------------
+```
+
+### 2.
