@@ -275,7 +275,7 @@ Why does this matter?
 > A good practice: start with a reasonable estimate (e.g., 100 tokens for explanations) and adjust based on the task.
 Remember, tokens != words. One token is roughly ~4 characters in English, so 100 tokens is about 75 words.
 
-#### Example 1: Adjusting Max Tokens
+#### Example 1: Adjusting `max_tokens`
 
 ```python
 messages=[
@@ -327,7 +327,7 @@ In essence, embeddings enable LLMs to interpret text in a way that captures sema
 --------------------------------------------------------------------------------
 ```
 
-### 2. Adjusting Temperature
+### 2. Adjusting `temperature`
 The temperature parameter controls how creative or random the model’s responses are.
 
 A low temperature (0.0) makes the model deterministic — it always gives the same, safe answer.
@@ -406,4 +406,103 @@ Waves of the ocean, drawn by
 
 --------------------------------------------------------------------------------
 ```
+<br>
 
+### 3. Adjusting `top-p`
+The top-p parameter, also called nucleus sampling, controls how much of the probability distribution is considered when generating the next token.
+
+- At top-p = 1.0, the model considers the full probability distribution — from very likely to very unlikely words.
+- At lower top-p values (e.g., 0.9, 0.5, 0.1), the model only samples from the most likely tokens, cutting off the tail of the distribution.
+
+This makes responses more focused and less random.
+
+**Why is Top-p Important? Choosing the right top-p is useful when:**
+- You want focused and coherent outputs → set a lower top-p.
+- You want variety but still within reason → keep top-p higher, around 0.8–1.0.
+
+#### Practical Use Cases (Top-p)
+- Top-p = 1.0: Best for open-ended, artistic, or exploratory tasks where creativity is paramount (e.g., writing poetry, brainstorming ideas).
+- Top-p = 0.9: Suitable for tasks requiring creativity with a touch of control, like marketing content or user-facing explanations.
+- Top-p = 0.5: Good for structured and semi-creative content, such as professional writing or concise presentations.
+- Top-p = 0.1: Perfect for scenarios demanding high accuracy and low randomness, like generating factual summaries or code snippets.
+
+
+
+```python
+ # Example 3: Adjusting Top-p
+
+
+# Define the input messages
+messages = [
+    {"role": "system", "content": "You are a dungeon master in a fantasy roleplay game."},
+    {"role": "user", "content": "The player enters a dark cave. Describe what happens next."}
+]
+
+# Function to test different top-p values
+def test_top_p(top_p):
+    kwargs = dict(
+        model="gpt-4o-mini",
+        messages=messages,
+        max_tokens=100,  # Keep responses concise
+        temperature=0.7,  # Adds some randomness
+        top_p=top_p  # Nucleus sampling
+    )
+    response = chat.completions.create(**kwargs)
+    response_dict = response.model_dump()
+    message_value = response_dict['choices'][0]['message']['content']
+    print(f"Top-p: {top_p}")
+    print("Response:", message_value)
+    print("\n" + "-"*80 + "\n")
+
+# Test significant changes in top-p values
+test_top_p(top_p=1.0)  # Full range of probabilities
+test_top_p(top_p=0.9)  # Limits to the most probable tokens
+test_top_p(top_p=0.5)  # Further restricts probabilities
+test_top_p(top_p=0.1)  # Highly focused on top-probability tokens
+```
+
+```sh
+Top-p: 1.0
+Response: As you step into the dark cave, the air grows noticeably cooler and carries a damp, earthy scent. The sound of dripping water echoes softly in the distance, and the faint rustle of something unseen sends a shiver down your spine. 
+
+Your eyes slowly adjust to the dim light filtering in from the entrance, revealing rough stone walls adorned with patches of luminous moss that cast an eerie green glow. Shadows dance around you, creating the illusion of movement just beyond your sight.
+
+Ahead, you notice the
+
+--------------------------------------------------------------------------------
+
+Top-p: 0.9
+Response: As you step into the dark cave, the cool air wraps around you like a damp cloak, and the faint sound of dripping water echoes in the distance. Your eyes slowly adjust to the dim light, revealing rough-hewn stone walls that glisten with moisture. Shadows dance along the ground, cast by the flickering light of your torch.
+
+The narrow passage leads deeper into the cave, and you can feel a slight breeze flowing through, carrying with it a faint, earthy scent. As you move further
+
+--------------------------------------------------------------------------------
+
+Top-p: 0.5
+Response: As you step into the dark cave, the air grows noticeably cooler, and a damp, earthy scent fills your nostrils. The faint sound of dripping water echoes off the stone walls, creating an eerie symphony that reverberates through the stillness. Your eyes slowly adjust to the dim light, revealing jagged rock formations that jut out from the walls like the teeth of some ancient beast.
+
+Ahead, the cave narrows into a winding passage, with shadows dancing at the edges of your vision
+
+--------------------------------------------------------------------------------
+
+Top-p: 0.1
+Response: As you step into the dark cave, the air grows noticeably cooler, and a damp chill wraps around you like a shroud. The faint sound of dripping water echoes in the distance, creating an eerie rhythm that seems to pulse with the heartbeat of the cave itself. Your footsteps crunch softly on the gravelly floor, and the darkness swallows the light from your torch, casting long, flickering shadows on the rough stone walls.
+
+As your eyes adjust, you notice faint glimmers of moisture on the
+
+--------------------------------------------------------------------------------
+```
+<br>
+
+#### Temperature vs. Top-p in Practice
+Temperature controls randomness in how tokens are picked.
+Example: At high temperature, the same cave could be described with very unusual or artistic phrasing.
+
+Top-p controls breadth of choices.
+Example: At medium top-p, the cave might contain bats, treasure, or a sleeping monster. At very low top-p, it might always just be “dark and empty.”
+
+#### Adjusting Temperature and Top-p Together
+The best practice is to adjust either temperature or top-p, not both at the same time.
+- Changing both parameters can skew the token probability distribution too drastically, making behavior unpredictable or hard to interpret.
+- If you want more creativity or randomness, increase temperature from its default (e.g., to ~0.7–0.9).
+- If you want to filter token candidates based on probability mass, adjust top-p (e.g., between 0.8–0.9).
