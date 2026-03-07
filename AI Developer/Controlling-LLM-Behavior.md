@@ -506,3 +506,138 @@ The best practice is to adjust either temperature or top-p, not both at the same
 - Changing both parameters can skew the token probability distribution too drastically, making behavior unpredictable or hard to interpret.
 - If you want more creativity or randomness, increase temperature from its default (e.g., to ~0.7–0.9).
 - If you want to filter token candidates based on probability mass, adjust top-p (e.g., between 0.8–0.9).
+
+<br>
+
+## Comparing LLM Responses Across Tasks and Models
+This section benchmarks how different language models perform across a variety of tasks. 
+Each task includes a prompt and an expected response. 
+The goal is to observe how closely each model's output aligns with the expected answer. 
+
+
+```python
+import pandas as pd
+# Define tasks with prompts and expected responses
+tasks = [
+    {
+        "task_name": "High School Mathematics",
+        "prompt": "SA box contains 4 white balls and 4 black balls. I draw them out of the box, one at a time. What is the probability that all of my draws alternate colors?",
+        "expected_response": "\\frac{1}{35}"
+    },
+    {
+        "task_name": "Formal Logic",
+        "prompt": "Construct a complete truth table for the following argument. Then, using the truth table, determine whether the argument is valid or invalid. If the argument is invalid, choose an option which presents a counterexample. (There may be other counterexamples as well.) (O ≡ P) ∨ P / P ∨ ~O",
+        "expected_response": "Valid"
+    },
+    {
+        "task_name": "Code Generation",
+        "prompt": "Write a Python function that checks if a given string is a palindrome.",
+        "expected_response": (
+            "def is_palindrome(s):\n"
+            "    s = s.replace(' ', '').lower()\n"
+            "    return s == s[::-1]"
+        )
+    },
+    {
+        "task_name": "Business Ethics",
+        "prompt": "When negotiating using unethical practices, businesses can risk _______, if the negotiations are part of a longer-term business association, as well as a ___________ and __________, as negotiations can impact company image and stymy progress.",
+        "expected_response": "Damaged relationships, Sullied reputation, Lost opportunities"
+    },
+    {
+        "task_name": "Conceptual Physics",
+        "prompt": "Imagine you're standing on the surface of a shrinking planet. If it shrinks to one-tenth its original diameter with no change in mass on the shrunken surface you'd weigh",
+        "expected_response": "100 times as much."
+    }
+]
+
+models = ["mistralai--mistral-large-instruct", "meta--llama3.1-70b-instruct", "gpt-4o"]
+
+def invoke_model(prompt, model):
+    try:
+        llm = init_llm(model, temperature=0.0, max_tokens=150)
+        response = llm.invoke('Answer as briefly as possible: ' + prompt).content
+        return response
+    except Exception as e:
+        return f"Error: {str(e)}"
+    
+
+# Initialize a results list
+results = []
+
+# Benchmarking loop
+for task in tasks:
+    for model in models:
+        response = invoke_model(task["prompt"], model)
+        results.append({
+            "Task": task["task_name"],
+            "Model": model,
+            "Prompt": task["prompt"],
+            "Expected Response": task["expected_response"],
+            "Model Response": response
+        })
+
+# Convert results to a DataFrame for better visualization
+results_df = pd.DataFrame(results)
+
+# Save the results to a CSV file for later analysis
+results_df.to_csv("llm_benchmark_results.csv", index=False)
+
+display(results_df)
+```
+
+<br>
+
+### Evaluating Model Responses Using an LLM as a Judge
+After collecting responses from different models across a variety of tasks, the next step is to evaluate how well each model performed. Instead of manually reviewing each response, we can use a powerful LLM (GPT-4o) to act as an automated evaluator or "judge."
+
+This automated evaluation helps us quickly compare model performance at scale and identify which models are more reliable across different types of tasks.
+
+> Note: While using an LLM as a judge is efficient, it’s important to carefully consider the limitations and potential biases of the judge model itself. Its evaluation may not always align with human judgment, especially for nuanced or subjective tasks.
+
+```python
+# We use a powerful LLM as a judge to compare the responses of different models to the expected responses for each task we go over the dataframe and add a column with the judge's response
+# Initialize the judge model
+judge_model = "gpt-4o"
+# Initialize a list to store the judge responses
+judge_responses = []
+# Iterate over the rows of the DataFrame
+for index, row in results_df.iterrows():
+    # Get the prompt and expected response
+    prompt = "Act as a LLM model performance evaluator. Output Simply Right or Wrong for the following task, expected response and model response. Task: " + row["Prompt"] + 'Expected response: ' + row["Expected Response"] + "Model response: " + row["Model Response"]
+    # Invoke the judge model
+    judge_response = invoke_model(prompt, judge_model)
+    # Append the judge response to the list
+    judge_responses.append(judge_response)
+# Add the judge responses to the DataFrame
+results_df["Judge Response"] = judge_responses
+# Display the updated DataFrame
+display(results_df)
+```
+
+<br>
+
+### Measuring Model Performance: Success Rate by Model
+Now that we’ve used an LLM to evaluate whether each model’s response was correct or not, we can calculate the success rate for each model.
+
+This gives us a quantitative measure of model performance, helping us compare their reliability and accuracy.
+
+```pyhton
+# This displays the success rate of each model by comparing the model response to the expected response and the judge response
+# Initialize lists to store the success rates
+model_success_rates = []
+for model in models:
+    # Calculate the success rate for the model based on the right or wrong judge response
+    correct_count = results_df[
+        (results_df["Model"] == model) & (results_df["Judge Response"] == "Right")
+    ].shape[0]
+    total_count = results_df[results_df["Model"] == model].shape[0]
+    success_rate = correct_count / total_count
+    print(f"Model: {model}, Success Rate: {success_rate:.2f}")
+```
+
+```sh
+Model: mistralai--mistral-large-instruct, Success Rate: 0.20
+Model: meta--llama3.1-70b-instruct, Success Rate: 0.00
+Model: gpt-4o, Success Rate: 0.20
+```
+
