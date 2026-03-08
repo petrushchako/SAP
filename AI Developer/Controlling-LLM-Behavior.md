@@ -811,6 +811,19 @@ Model Response:
 > 
 > - Notice how delimiters break down complex prompts into manageable sections making them easier to understand and process.
 
+<br><br><br>
 
 
+### #3: Applying SAP AI Guardrails
+As large language models (LLMs) continue to evolve and find integration across diverse applications, ensuring their secure and responsible use has become a critical priority. The overall security posture of LLM-powered applications must be strengthened using:
+
+- Prompt hardening techniques, and
+- AI guardrails available within SAP AI Core Orchestration Pipeline.
+
+AI guardrails in SAP AI Core orchestration pipeline serve as a protective layer between the user and the backend language model. They offer capabilities such as filtering inputs and outputs to prevent malicious or harmful activity, as well as masking sensitive data. This enables LLM applications to differentiate between sensitive and non-sensitive content, as well as inappropriate or unethical content, before delivering output to the end user thereby supporting responsible AI principles in application development.
+
+**Further Learning**
+- Learn more on Orchestration and applying AI Guardrails in this Success Map Learning course: [Orchestration Workflows With SAP Cloud SDK for AI](https://performancemanager5.successfactors.eu/sf/learning?destUrl=https%3A%2F%2Fsap%2eplateau%2ecom%2Flearning%2Fuser%2Fdeeplink%5fredirect%2ejsp%3FlinkId%3DITEM%5fDETAILS%26componentID%3DDEV%5f00010196%5fWBT%26componentTypeID%3DCOURSE%26revisionDate%3D1746020851000%26fromSF%3DY&company=SAP).
+- For more details, refer to the [Securing LLM applications with SAP AI Core Orchestration Pipeline and Prompt Hardening](https://sap.sharepoint.com/:w:/r/teams/AISecurity-CoE/_layouts/15/Doc.aspx?sourcedoc=%7BE7AAE035-8FA4-4D1B-9C31-951044333440%7D&file=Prompt%20Hardening.docx&action=default&mobileredirect=true) guide from AI Security CoE.
+- You can learn more AI security insights in the [AI Security CoE Sharepoint site](https://sap.sharepoint.com/teams/AISecurity-CoE)
 
