@@ -1,0 +1,6 @@
+sap-ai-sdk-gen[all]==5.6.3
+requests
+hana-ml
+hdbcli
+cryptography
+pypdf
