@@ -48,3 +48,73 @@ env_vars = {
 }
 
 os.environ.update(env_vars)
+
+
+
+###############################################
+###              Load PDF files             ###
+###############################################
+
+#Policy download links- https://one.int.sap/company/policies_and_guidelines/travel_and_mobility#procurement___travel_b9ff/sap_global_car_fleet_policy_
+
+from langchain.document_loaders import PyPDFLoader
+
+# Load PDF
+loaders = [
+    # Multiple documents on purpose - data
+    PyPDFLoader("GlobalTravelPolicy (English).pdf"),
+    PyPDFLoader("SAP Global Environmental Policy_Internal_ENGLISH.pdf"),
+]
+docs = []
+for loader in loaders:
+    docs.extend(loader.load())
+
+
+
+###############################################
+#####       Chunking with overlaps        #####
+###############################################
+
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+# Modify the chunk_size and chunk_overlap parameters
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1500,  # You can change this value
+    chunk_overlap=150  # You can change this value
+)
+
+splits = text_splitter.split_documents(docs)
+len(splits)  # Output the number of chunks
+
+
+############
+#### Create embeddings
+#####
+
+
+from gen_ai_hub.proxy.native.openai import embeddings
+
+response = embeddings.create(
+    input="Non-compliance with the Global Travel Policy may lead to legal, tax or financial risk, and may even put SAP’s reputation at risk.",
+    model_name="text-embedding-3-large"
+)
+print(response.data)
+len(response.data[0].embedding)
+
+
+
+embedding_model = OpenAIEmbeddings(proxy_model_name='text-embedding-3-large')
+sentence1 = "The Global Travel Policy is based on SAP’s values, strategies, and principles"
+sentence2 = "Do the cows come from Mars or from Vebus or from the lake nearby ?"
+sentence3 = "SAP's Cloud Strategy is sound and customer adoption shows they value our company's offerings"
+
+from gen_ai_hub.proxy.langchain.openai import ChatOpenAI
+from gen_ai_hub.proxy.core.proxy_clients import get_proxy_client
+
+proxy_client = get_proxy_client('gen-ai-hub')
+chat_llm = ChatOpenAI(proxy_model_name='gpt-4o-mini', proxy_client=proxy_client, temperature=0.0)
+
+embedding1 = embedding_model.embed_query(sentence1)
+embedding2 = embedding_model.embed_query(sentence2)
+embedding3 = embedding_model.embed_query(sentence3)
+
