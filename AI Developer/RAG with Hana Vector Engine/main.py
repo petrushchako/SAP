@@ -51,9 +51,9 @@ os.environ.update(env_vars)
 
 
 
-###############################################
-###              Load PDF files             ###
-###############################################
+#############################################################################
+######                           Load PDF files                        ######
+#############################################################################
 
 #Policy download links- https://one.int.sap/company/policies_and_guidelines/travel_and_mobility#procurement___travel_b9ff/sap_global_car_fleet_policy_
 
@@ -71,9 +71,9 @@ for loader in loaders:
 
 
 
-###############################################
-#####       Chunking with overlaps        #####
-###############################################
+#############################################################################
+#####                       Chunking with overlaps                      #####
+#############################################################################
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
@@ -87,9 +87,9 @@ splits = text_splitter.split_documents(docs)
 len(splits)  # Output the number of chunks
 
 
-###############################################
-####           Create embeddings           ####
-###############################################
+#############################################################################
+######                         Create embeddings                       ######
+#############################################################################
 
 
 from gen_ai_hub.proxy.native.openai import embeddings
@@ -120,9 +120,9 @@ embedding3 = embedding_model.embed_query(sentence3)
 
 
 
-##################################################################
-####  Use NumPy to measure cosine similarity between vectors #####
-##################################################################
+#############################################################################
+######      Use NumPy to measure cosine similarity between vectors     ######
+#############################################################################
 import numpy as np
 np.dot(embedding1, embedding2) # 0.04098079406732409
 np.dot(embedding1, embedding2) # 0.4244397013593574
@@ -130,5 +130,70 @@ np.dot(embedding2, embedding3) # 0.04473057713577556
 
 
 
+#############################################################################
+######                   Load vectors into HANA DB                     ######
+#############################################################################
+# Define the HANA Cloud username (most probably DBADMIN)
+HANA_USER_VDB = 'DBADMIN'
 
+# Define the HANA Cloud password (replace by the value you defined during the HANA Cloud instance creation)
+HANA_PASSWORD_VDB = '***************'
+
+# Define the HANA Cloud host - this host was configured during the HANA Cloud instance creation
+# Hint1- This is your SQL Endpoint. But remove ":443" from the SQL Endpoint as port is already hardcoded
+# Hint2- In HANA Cloud Central, click on your instance, then click on button "Copy SQL Endpoint" at the top right corner
+
+HANA_HOST = '***************************.hana.trial-us10.hanacloud.ondemand.com'
+
+
+# Use connection settings
+connection = dbapi.connect(
+    address=HANA_HOST,
+    port=443,
+    user=HANA_USER_VDB,
+    password=HANA_PASSWORD_VDB,
+    encrypt='true',
+    autocommit=True
+)
+
+# Connection Context
+conn = dataframe.ConnectionContext(
+    address=HANA_HOST,  
+    port=443,
+    user=HANA_USER_VDB,
+    password=HANA_PASSWORD_VDB,
+    encrypt='true',
+    autocommit=True
+)
+print(conn)
+
+
+
+from gen_ai_hub.proxy.langchain.openai import ChatOpenAI
+from gen_ai_hub.proxy.core.proxy_clients import get_proxy_client
+
+proxy_client = get_proxy_client('gen-ai-hub')
+chat_llm = ChatOpenAI(proxy_model_name='gpt-4o-mini', proxy_client=proxy_client, temperature=0.0)
+
+db = HanaDB(
+    embedding=embedding_model,
+    connection=connection,
+    table_name="TRAVEL_AND_ENVIRONMENT_POLICY"
+    # vector_column_length=1536
+)
+
+# Delete already existing documents from the table
+db.delete(filter={})
+
+# add the loaded document chunks 
+db.add_documents(splits)
+
+
+# take a look at the table
+hdf = conn.sql(''' SELECT "VEC_TEXT", "VEC_META", TO_NVARCHAR("VEC_VECTOR") AS "VEC_VECTOR" FROM "TRAVEL_AND_ENVIRONMENT_POLICY" ''')
+df = hdf.head(10).collect()
+df
+
+
+retriever = db.as_retriever()
 
