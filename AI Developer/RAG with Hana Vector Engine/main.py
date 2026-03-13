@@ -87,9 +87,9 @@ splits = text_splitter.split_documents(docs)
 len(splits)  # Output the number of chunks
 
 
-############
-#### Create embeddings
-#####
+###############################################
+####           Create embeddings           ####
+###############################################
 
 
 from gen_ai_hub.proxy.native.openai import embeddings
@@ -117,4 +117,18 @@ chat_llm = ChatOpenAI(proxy_model_name='gpt-4o-mini', proxy_client=proxy_client,
 embedding1 = embedding_model.embed_query(sentence1)
 embedding2 = embedding_model.embed_query(sentence2)
 embedding3 = embedding_model.embed_query(sentence3)
+
+
+
+##################################################################
+####  Use NumPy to measure cosine similarity between vectors #####
+##################################################################
+import numpy as np
+np.dot(embedding1, embedding2) # 0.04098079406732409
+np.dot(embedding1, embedding2) # 0.4244397013593574
+np.dot(embedding2, embedding3) # 0.04473057713577556
+
+
+
+
 
