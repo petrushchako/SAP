@@ -197,3 +197,87 @@ df
 
 retriever = db.as_retriever()
 
+
+
+#############################################################################
+######                   Building the RAG Pipeline                     ######
+#############################################################################
+
+from langchain_core.prompts import ChatPromptTemplate
+prompt = ChatPromptTemplate.from_template("""Provide answers based on context provided:
+
+<context>
+{context}
+</context>
+
+Question: {input}""")
+
+
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+
+document_chain = create_stuff_documents_chain(chat_llm, prompt)
+retrieval_chain = create_retrieval_chain(retriever, document_chain)
+
+
+response = retrieval_chain.invoke({"input": "Which are the certified environmental and energy management systems that SAP run?"})
+print(response["answer"])
+        # Sample Output:
+        # SAP runs certified environmental and energy management systems that include ISO 14001 and ISO 50001.
+
+response = retrieval_chain.invoke({"input": "How much does SAP intend to reduce its carbon emissions for the rest of 2025?"})
+print(response["answer"])
+        # Sample Output:
+        # The provided context does not specify a specific target for reducing carbon emissions for the rest of 2025. It mentions SAP's commitment to becoming carbon neutral in its own operations by 2023 and achieving net-zero along its value chain by 2030, but it does not detail any specific reduction goals for 2025.
+
+response = retrieval_chain.invoke({"input": "what are the key environmental objectives to foster a low-carbon, circular future"})
+print(response["answer"])
+        # Sample Output:
+        # The key environmental objectives to foster a low-carbon, circular future as outlined in the context are:
+        # 
+        # 1. Become carbon neutral in SAP's own operations by 2023.
+        # 2. Achieve net-zero along SAP's value chain in line with a 1.5°C future by 2030.
+        # 3. Continually improve SAP’s energy performance.
+        # 4. Strive towards zero electronic waste in SAP's own operations by 2030.
+        # 5. Improve SAP’s overall waste performance and separation.
+        # 6. Continually reduce SAP’s water consumption.
+        # 7. Raise awareness for sustainability and enable employees to improve SAP’s environmental performance.
+        # 8. Develop solutions that enable customers to meet their sustainability challenges and opportunities.
+
+response = retrieval_chain.invoke({"input": "What are the reimbursable expenses? Can I attend a conference that falls on a Sunday?"})
+print(response["answer"])
+        # Sample Output:
+        # The reimbursable expenses according to the SAP Global Travel Policy include:
+        # 
+        # - Transportation
+        # - Parking fees
+        # - Cost of private car usage based on local reimbursement rates
+        # - Accommodation
+        # - Cancellation fees
+        # - Meals in accordance with the country-specific rules defined in the local amendments
+        # - Course and seminar fees
+        # - Tips (local practice in the destination country)
+        # - Laundry services while on the trip
+        # - Communication costs incurred during day-to-day business
+        # - Baggage fees
+        # - Purchase of business-required low-value items (up to €100)
+        # - Charges for currency exchanges
+        # - Gifts for business partners (in alignment with SAP’s and business partner’s policies)
+        # - Business-relevant entertainment costs (in alignment with SAP’s and business partner’s policies)
+        # - Car services (please refer to the local amendment)
+        # 
+        # Regarding attending a conference that falls on a Sunday, the policy does not explicitly mention restrictions on attending events based on the day of the week. Therefore, you should be able to attend a conference on a Sunday, provided it is related to your business activities and complies with the overall travel policy. However, it is advisable to check with your manager or refer to any local amendments for specific guidelines.
+
+response = retrieval_chain.invoke({"input": "Can I book a hotel that is not a SAP preferred hotel?"})
+print(response["answer"])
+        # Sample Output:
+        # Yes, you can book a hotel that is not a SAP-preferred hotel if either of the following conditions is met:
+        # 
+        # 1. There is no SAP-preferred hotel within a reasonable distance from the travel destination.
+        # 2. Another hotel is cheaper than the SAP-preferred hotel, taking into consideration the amenities included.
+        # 
+        # Additionally, the use of apartments or flats is specifically regulated in the local amendment.
+
+
+
+
