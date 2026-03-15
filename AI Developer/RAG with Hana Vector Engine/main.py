@@ -281,3 +281,40 @@ print(response["answer"])
 
 
 
+#############################################################################
+######                     Hallucination Examples                      ######
+#############################################################################
+
+response = retrieval_chain.invoke({"input": "Can you tell something about ISO 9001 mentioned in SAP policy"})
+print(response["answer"])
+# Note: There is no mention of ISO 9001 in the policies but it does exist otherwise. So lets see if it may result in hallucination.
+        # Sample Output:
+        # The provided context does not mention ISO 9001 or provide any information related to it. ISO 9001 is a standard that specifies requirements for a quality management system (QMS) and is focused on ensuring that organizations consistently meet customer and regulatory requirements and enhance customer satisfaction. If you need specific information about ISO 9001 in relation to SAP or any other context, please provide additional details or clarify your request.
+
+
+response = retrieval_chain.invoke({"input": "How does ISO 9001 help SAP Achieve net-zero along SAP's value chain in line with a 1.5°C future by 2030"})
+print(response["answer"])
+# Note: There is no mention of ISO 9001 in the policies but it does exist otherwise. So lets see if it may result in hallucination.
+        # Sample Output:
+        # The provided context does not specifically mention ISO 9001 or its direct role in helping SAP achieve net-zero along its value chain in line with a 1.5°C future by 2030. However, ISO 9001 is a standard for quality management systems that emphasizes continuous improvement, customer satisfaction, and process efficiency. 
+        # In a broader sense, implementing ISO 9001 can support SAP's sustainability goals by:
+        # 1. **Enhancing Process Efficiency**: By streamlining processes and reducing waste, ISO 9001 can contribute to lower emissions and resource use, aligning with SAP's commitment to reduce its environmental impact.
+        # 2. **Improving Supplier Engagement**: ISO 9001 encourages organizations to work closely with suppliers to ensure quality and compliance. This can help SAP strengthen its engagement with suppliers to meet sustainability objectives, including net-zero commitments.
+        # 3. **Facilitating Continuous Improvement**: The focus on continuous improvement in ISO 9001 can drive SAP to regularly assess and enhance its environmental performance, helping to meet its targets for carbon neutrality and waste reduction.
+        # 4. **Integrating Environmental Management**: While ISO 9001 focuses on quality, it can be integrated with environmental management systems (like ISO 14001) to create a holistic approach to sustainability, supporting SAP's overall environmental objectives.
+        # In summary, while ISO 9001 is not explicitly mentioned in the context, its principles can indirectly support SAP's efforts to achieve net-zero emissions along its value chain by promoting efficiency, supplier collaboration, and continuous improvement in environmental performance.
+
+
+response = retrieval_chain.invoke({"input": "Can you tell something about ISO 12345 mentioned in SAP policy"})
+print(response["answer"])
+# Note: There is no mention of ISO 12345 in the policies and it does not exist as well. So lets see if it may result in hallucination.
+        # Sample Output:
+        # The provided context does not mention ISO 12345 or provide any information related to it. The document primarily discusses SAP's Global Environmental Policy, including compliance with ISO 50001 and ISO 14001 certifications, which relate to energy management and environmental management systems, respectively. If you have specific questions about ISO 50001 or ISO 14001, I can provide information on those.
+
+
+response = retrieval_chain.invoke({"input": "my son has the minimum age for driving a car in US and i would like to book a mid sized car for my business trip. Assuming I filled the gas, Is there any additional cost for him to be able to drive"})
+print(response["answer"])
+## Example of a hallucination
+# The response is a partial hallucination because the model infers that the employee’s son can drive the rental car, even though the company policy document does not mention or permit this.
+        # Sample Output:
+        # According to the SAP Global Travel Policy, you must comply with local terms and conditions for car rental, including the minimum age for drivers. If your son meets the minimum age requirement for driving a car in the US, you should be able to book a midsize car for your business trip. However, additional costs may apply if the rental agency charges a young driver fee, which is common for drivers under a certain age (often 25). It is advisable to check with the car rental agency regarding their specific policies and any potential fees for additional drivers.
