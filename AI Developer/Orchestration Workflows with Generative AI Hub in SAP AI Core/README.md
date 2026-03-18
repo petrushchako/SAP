@@ -45,3 +45,72 @@ from gen_ai_hub.orchestration.models.message import SystemMessage, UserMessage
 from gen_ai_hub.orchestration.models.template import Template, TemplateValue
 from gen_ai_hub.orchestration.models.config import OrchestrationConfig
 ```
+
+
+
+### Excercise
+#### 1. Define the LLM configuration
+```python
+llm = LLM(
+    name="gemini-2.5-flash",
+    version="latest",
+    parameters={"temperature": 0.2, "max_tokens": 256},
+)
+```
+
+#### 2. Create a prompt template
+- The system message instructs the AI to produce JSON output.
+- The user message passes the unstructured text (an email in this case).
+
+```python
+template = Template(
+    messages=[
+        SystemMessage(
+            "You are an AI assistant that extracts structured data from unstructured emails. "
+            "Please read the email text and output a JSON object with the fields: "
+            "'sender', 'subject', and 'body'."
+        ),
+        UserMessage("Email text: {{?email_text}}")
+    ]
+)
+```
+> In addtiion to the messages dictionary, the Template class also allows to define default values for template input parameter values. See an [example here](https://help.sap.com/doc/generative-ai-hub-sdk/CLOUD/en-US/_reference/orchestration-service.html#step-1-define-the-template-and-default-input-values).
+
+#### 3. Build an OrchestrationConfig with the template and the LLM
+```python
+config = OrchestrationConfig(
+    template=template,
+    llm=llm
+)
+```
+
+#### 4. Run the pipeline with a sample email
+```python
+unstructured_email = (
+    "From: bob@company.com\n"
+    "Subject: Quarterly Report Discussion\n"
+    "Hello Team,\n\n"
+    "Let's schedule a call to talk about the Q2 report next week.\n"
+    "Regards,\n"
+    "Bob"
+)
+```
+
+#### 5. Substitutes the {{?email_text}} placeholder and executes the pipeline, sending your prompt to the chosen LLM and its configuration
+```python
+result = orchestration_service.run(config=config,
+    template_values=[TemplateValue(name="email_text", value=unstructured_email)]
+)
+```
+
+
+#### 6. Print the AI’s JSON-like response
+```python
+ai_response = result.orchestration_result.choices[0].message.content
+print("Extracted JSON:", ai_response)
+```
+
+> As you can see, the model includes additional formatting text (```json and ```) around the actual JSON output. While this is readable for humans, it's not ideal for applications that need to parse the JSON directly.
+
+
+<br>
