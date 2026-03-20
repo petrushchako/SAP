@@ -113,4 +113,71 @@ print("Extracted JSON:", ai_response)
 > As you can see, the model includes additional formatting text (```json and ```) around the actual JSON output. While this is readable for humans, it's not ideal for applications that need to parse the JSON directly.
 
 
-<br>
+<br><br><br>
+
+
+### Structured JSON Output with `response_format` Parameter
+
+```python
+from gen_ai_hub.orchestration.models.response_format import ResponseFormatJsonSchema
+
+
+# 1. Define the exact JSON schema we want the AI to return.
+email_schema = {
+    "title": "Email",
+    "type": "object",
+    "properties": {
+            "sender": {
+            "type": "string",
+            "description": "The email address of the sender."
+        },
+            "subject": {
+            "type": "string",
+            "description": "The subject line of the email."
+        },
+            "body": {
+            "type": "string",
+            "description": "The main content of the email."
+        }
+    },
+    "required": ["sender", "subject", "body"]
+}
+
+# 2. Create a new template using the response_format parameter.
+#    Note that we no longer need to explicitly ask for JSON in the system prompt.
+template_with_schema = Template(
+    messages=[
+        SystemMessage("You are an AI assistant that extracts structured data from unstructured text."),
+        UserMessage("{{?email_text}}")
+    ],
+    response_format = ResponseFormatJsonSchema(name="email_extractor", description="Extracts fields from an email", schema=email_schema),
+)
+
+# 3. Build a new OrchestrationConfig with the schema-enforced template.
+config_with_schema = OrchestrationConfig(
+    template=template_with_schema,
+    llm=llm
+)
+
+# 4. Run the pipeline again with the new configuration.
+result_with_schema = orchestration_service.run(config=config_with_schema,
+    template_values=[TemplateValue(name="email_text", value=unstructured_email)]
+)
+
+# 5. Print the clean response and parse it to demonstrate it's valid JSON.
+ai_response_clean = result_with_schema.orchestration_result.choices[0].message.content
+print("Clean JSON Output:", ai_response_clean)
+
+# Prove that the output is a directly parsable JSON string
+parsed_json = json.loads(ai_response_clean)
+print("\nParsed Dictionary Object:")
+print(parsed_json)
+print("\nSender:", parsed_json.get("sender"))
+```
+
+#### Summary:
+- **LLM**: Sets up the desired model (in this case, “gemini-2.5-flash”) and optional parameters like temperature. Other models you can use in the present deployment are: ['anthropic--claude-4-sonnet, gemini-2.5-pro, 'gpt-5', 'gpt-5-mini', ]
+- **Template**: Outlines the prompt structure with placeholders (e.g., {{?topic}}).
+- **OrchestrationConfig**: Ties everything together.
+- **OrchestrationService**: Executes the pipeline, sending your prompt to the chosen LLM.
+- **Run**: Substitutes the {{?topic}} placeholder and prints the model’s output.
