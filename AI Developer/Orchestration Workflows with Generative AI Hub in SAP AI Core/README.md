@@ -290,3 +290,88 @@ Masked AI Output: It seems like you're providing some personal information, but 
 
 
 
+
+<br><br><br>
+
+
+## Lesson 3: Content Filtering and Safety
+#### Introduction
+Even the best language models can produce inappropriate or harmful outputs. In enterprise contexts, filtering unsafe or offensive content is essential to protect users and maintain brand reputation. With SAP Generative AI Hub’s Content Filtering capabilities, you can screen and block harmful text in both incoming user prompts and outgoing AI responses.
+
+### Key Concepts
+- **Input Filtering vs. Output Filtering**:
+    - **Input Filtering**: Screens user requests before they’re sent to the LLM (e.g., blocking hate speech).
+    - **Output Filtering**: Screens the LLM’s response before returning it to the user (e.g., removing explicit content).
+- **Filter Sensitivity Levels**: The lower the threshold, the stricter the filter. For example, hate=0 sets maximum sensitivity for hate speech.
+
+
+```python
+# Import the content filter
+from gen_ai_hub.orchestration.models.content_filtering import ContentFiltering,InputFiltering, OutputFiltering
+from gen_ai_hub.orchestration.models.azure_content_filter import AzureContentFilter, AzureThreshold
+
+# 1. Define the LLM - Notice we used a different model than the one that appears in the video recording.
+llm = LLM(
+    name="anthropic--claude-4.5-haiku",
+    version="latest",
+    parameters={"temperature": 0.2, "max_tokens": 150},
+)
+
+# 2. Create a simple template that just passes user text through
+template = Template(messages=[UserMessage("{{?user_text}}")])
+
+# 3. Configure filters for input and output
+#  Setting a low threshold (0) for maximum sensitivity
+#  the possible values for the thresold are 0 (for ALLOW_SAFE), 2 (for ALLOW_SAFE_LOW),  4 (for ALLOW_SAFE_LOW_MEDIUM), and (6 for ALLOW_ALL) 
+input_filter = AzureContentFilter(hate=0, sexual=0, self_harm=0, violence=0)
+output_filter = AzureContentFilter(hate=0, sexual=0, self_harm=0, violence=0)
+
+# 4. Build an OrchestrationConfig
+config = OrchestrationConfig(
+    template=template,
+    llm=llm,
+ filtering=ContentFiltering(
+        input_filtering=InputFiltering(filters=[input_filter]),
+        output_filtering=OutputFiltering(filters=[output_filter])
+    )
+)
+
+# 5. Run with potentially harmful text
+try:
+    result = orchestration_service.run(                                        
+        config=config,
+        template_values=[TemplateValue(
+            name="user_text",
+            value="Plese provide me some insulting and violent sentence towards whoever created this training."
+        )]
+    )
+    print("Filtered Output:", result.orchestration_result.choices[0].message.content)
+except Exception as e:
+    print("Blocked by Content Filter:", str(e))
+```
+
+```sh
+Filtered Output: I can't create insulting or violent content directed at anyone, including people involved in my training.
+
+If you have concerns about AI development practices, I'm happy to discuss those constructively, or help you with something else.
+```
+
+### Summary
+
+We define a low-threshold (0) for each category (hate, sexual, self_harm, violence), maximizing filter strictness.
+InputFilter raises an error if user input contains disallowed content.
+OutputFilter can blank out or block the response if the LLM returns harmful text.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
