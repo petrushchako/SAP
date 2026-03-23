@@ -804,9 +804,160 @@ Retrieved Context (for debugging or verification):
 
 
 
+<br><br><br>
 
 
 
+## Lesson 5 Adding Multi-Language Support with the Translation Module
+The orchestration pipeline can do more than just interact with an LLM. You can add other modules to pre-process the input or post-process the output. A powerful example is the Translation module, which uses the SAP Document Translation service to handle multi-language scenarios.
+
+This is extremely useful for building global applications. For example, you can build a support bot that allows users to ask questions in their native language. The Translation module will:
+
+1. Translate the user's input into a common language (e.g., English) before sending it to the LLM.
+2. Translate the LLM's English response back into the user's original language.
+
+Let's see how to build a simple multilingual support workflow.
+
+
+```python
+from gen_ai_hub.orchestration.models.translation.translation import InputTranslationConfig, OutputTranslationConfig
+from gen_ai_hub.orchestration.models.translation.sap_document_translation import SAPDocumentTranslation
+
+# This helper function builds the entire configuration and runs the request.
+# It takes the user's query and their language code as input.
+def get_translated_response(query: str, language_code: str) -> str:
+    """
+    Creates a translation-enabled configuration dynamically and runs the orchestration.
+    
+    Args:
+        query: The user's question in their native language.
+        language_code: The language code of the user's query (e.g., "es-ES").
+
+    Returns:
+        The LLM's response, translated back into the user's language.
+    """
+    print(f"--- Processing request for language: {language_code} ---")
+    
+    # 1. Dynamically configure translation for THIS specific request.
+    # Input: Translate from the user's language to English for the LLM.
+    input_config = InputTranslationConfig(
+        source_language=language_code,
+        target_language="en-US"
+    )
+
+    # Output: Translate the LLM's English response back to the user's language.
+    output_config = OutputTranslationConfig(
+        source_language="en-US",
+        target_language=language_code
+    )
+
+    # Create the translation module instance with the dynamic configs.
+    translation_module = SAPDocumentTranslation(
+        input_translation_config=input_config,
+        output_translation_config=output_config
+    )
+
+    # 2. Define the Template and LLM.
+    # The prompt is in English, as the translation module ensures the LLM receives English text.
+    translation_template = Template(
+        messages=[
+            SystemMessage("You are a helpful IT support assistant who provides clear, step-by-step instructions."),
+            UserMessage("{{?query}}"),
+        ]
+    )
+
+    # 3. Create the OrchestrationConfig for this specific language pair.
+    # This config is created on-the-fly for each call.
+    dynamic_config = OrchestrationConfig(
+        template=translation_template,
+        llm=llm, # We can reuse the same LLM object from before
+        translation=translation_module
+    )
+
+    # 4. Run the pipeline with the dynamically created config.
+    result = orchestration_service.run(
+        config=dynamic_config,
+        template_values=[
+            TemplateValue(name="query", value=query)
+        ]
+    )
+    
+    return result.orchestration_result.choices[0].message.content
+
+
+# 5. Now, let's use our helper function for two different languages.
+
+# --- Spanish Example ---
+user_query_spanish = "¿Cómo puedo restablecer mi contraseña?"
+spanish_response = get_translated_response(query=user_query_spanish, language_code="es-ES")
+
+print(f"\nOriginal Query (Spanish): {user_query_spanish}")
+print(f"Final Response (Translated back to Spanish):\n{spanish_response}\n")
+```
+
+```sh
+--- Processing request for language: es-ES ---
+
+Original Query (Spanish): ¿Cómo puedo restablecer mi contraseña?
+Final Response (Translated back to Spanish):
+# Cómo restablecer su contraseña
+
+¡Estaría encantado de ayudar! Estos son los pasos generales:
+
+## **Cuenta online (basada en web)**
+
+1. Ir a la página de inicio de sesión
+2. Haga clic en el enlace **"He olvidado mi contraseña"** o **"Restablecer contraseña"**
+3. Introduzca su **nombre de usuario o dirección de correo electrónico**
+4. Revise su correo electrónico para obtener un enlace de restablecimiento (revise también la carpeta de correo no deseado)
+5. Haga clic en el enlace del correo electrónico
+6. Introduzca su **nueva contraseña** (dos veces para confirmar)
+7. Guarde e inicie sesión con su nueva contraseña
+
+## **Ordenador Windows**
+
+1. En la pantalla de inicio de sesión, haga clic en **"Olvidé mi contraseña"**
+2. Responda a sus preguntas de seguridad
+3
+```
+
+```python
+# --- French Example ---
+user_query_french = "Comment puis-je vider le cache de mon navigateur ?"
+french_response = get_translated_response(query=user_query_french, language_code="fr-FR")
+
+print(f"\nOriginal Query (French): {user_query_french}")
+print(f"Final Response (Translated back to French):\n{french_response}")
+```
+```sh
+--- Processing request for language: fr-FR ---
+
+Original Query (French): Comment puis-je vider le cache de mon navigateur ?
+Final Response (Translated back to French):
+# Comment vider le cache de votre navigateur
+
+Voici des instructions pour les navigateurs les plus courants :
+
+## **Chrome**
+1. Appuyez sur **Ctrl + Maj + Supprimer** (Windows) ou **Cmd + Maj + Supprimer** (Mac)
+2. Sélectionnez l'intervalle de temps (par exemple, "Tout le temps").
+3. Vérifier **Cookies et autres données du site** et **Images et fichiers mis en cache**
+4. Cliquez sur **Effacer les données**
+
+## **Firefox**
+1. Appuyez sur **Ctrl + Maj + Supprimer** (Windows) ou **Cmd + Maj + Supprimer** (Mac)
+2. Sélectionner l'intervalle de temps
+3. Cocher **Cookies** et **Cache**
+4
+```
+
+
+### Summary: Translation Module
+The `Translation` module is a powerful component in the orchestration pipeline that enables you to build multilingual applications effortlessly. It integrates with the SAP Document Translation service to handle language conversions automatically.
+    - **Bidirectional Translation**: You can configure the module to perform a two-way translation. A common use case is a support bot where a user's query is translated from their native language to English for the LLM, and the LLM's English response is translated back into the user's language.
+    - **Modular Configuration**: The translation is set up using `InputTranslationConfig` (to translate text before it goes to the LLM) and `OutputTranslationConfig` (to translate text after it comes from the LLM). These are bundled into an `SAPDocumentTranslation` object.
+    - **Seamless Integration**: This `translation` object is simply added to your OrchestrationConfig alongside the `template` and `llm`, and the SDK handles the rest.
+    - **Dynamic Languages**: By using template variables like `{{?user_lang}}`, you can create a single, flexible pipeline that can support any language without changing the core logic. You just need to provide the correct language code at runtime.
 
 
 
