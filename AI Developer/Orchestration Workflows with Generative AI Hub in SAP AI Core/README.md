@@ -364,8 +364,443 @@ OutputFilter can blank out or block the response if the LLM returns harmful text
 
 
 
+<br><br><br>
 
 
+
+## Lesson 4: Grounding with Document Retrieval
+1. **Introduction**
+Generative AI models become significantly more powerful when their responses are grounded in reliable sources of information, such as internal documentation, knowledge bases, or external websites. SAP's Generative AI Hub provides the Document Grounding capability, leveraging Retrieval Augmented Generation (RAG). With Document Grounding, your AI applications can retrieve context-specific information in real-time from structured or unstructured documents, significantly enhancing accuracy and reliability.
+
+2. **Key Concepts**
+- **Retrieval Augmented Generation (RAG)**: A technique combining information retrieval and generative models to provide more precise, context-aware responses.
+- **Document Grounding Module**: Integrates document search and retrieval directly into your orchestration workflow.
+- **SAP HANA Vector Engine**: The technology used by SAP for efficient retrieval of context from vectorized documents.
+- **Data Repositories**: Sources of information such as internal documents, SharePoint folders, or external websites like SAP Help.
+- **Context Integration**: Dynamically including retrieved document content within AI model prompts.
+
+<br>
+
+### Grounding example 1
+
+```python
+
+from gen_ai_hub.orchestration.service import OrchestrationService
+from gen_ai_hub.orchestration.models.config import OrchestrationConfig
+from gen_ai_hub.orchestration.models.document_grounding import (GroundingModule, GroundingType, DataRepositoryType,
+     GroundingFilterSearch, DocumentGrounding,DocumentGroundingFilter)
+
+
+#Define prompt template using retrieved context
+prompt = Template(messages=[
+    SystemMessage("You are an expert on SAP Product documentation for developers."),
+    UserMessage("""Context: {{ ?grounding_response }}
+                   Question: Explain how to perform the following task: {{ ?userquestion }}"""),
+])
+
+
+# Grounding configuration to search SAP Help
+filters = [
+    DocumentGroundingFilter(id="SAPHelp", data_repository_type="help.sap.com")
+]
+
+
+grounding_config = GroundingModule(
+    type=GroundingType.DOCUMENT_GROUNDING_SERVICE.value,
+    config=DocumentGrounding(
+        input_params=["userquestion"],
+        output_param="grounding_response",
+        filters=filters
+    )
+)
+
+
+# Combine everything into OrchestrationConfig
+config = OrchestrationConfig(
+    template=prompt,
+    llm=llm,
+    grounding=grounding_config
+)
+
+
+# Run the orchestration with a user question
+response = orchestration_service.run(
+    config=config,
+    template_values=[
+        TemplateValue("userquestion", "How do I search my own documents using the grounding feature in Generative AI Hub?")
+    ]
+)
+
+print("AI Response:", response.orchestration_result.choices[0].message.content)
+```
+
+```sh
+AI Response: # Searching Your Own Documents Using Document Grounding in Generative AI Hub
+
+Based on the SAP Product documentation provided, here's how to leverage the **Document Grounding** feature in Generative AI Hub:
+
+## Overview
+
+Document Grounding is a foundational Joule capability that enables you to obtain more comprehensive responses by drawing from business documents located in SAP and third-party repositories.
+
+## Key Steps to Search Documents
+
+### 1. **Access Document Repositories**
+- Connect to your business documents stored in **SAP repositories**
+- Integrate with **third-party repositories** as needed
+- Ensure proper access permissions are configured
+
+### 2. **Initiate
+```
+
+```python
+# Display the raw retrieved grounding context for reference
+print("\nRetrieved Context (for debugging or verification):\n")
+print(response.module_results.grounding.data['grounding_result'])
+```
+
+``sh
+
+Retrieved Context (for debugging or verification):
+
+Develop a Semantic Search app leveraging Generative AI Hub &amp; SAP HANA Cloud's Vector Engine
+This feature ensures that the search results remain relevant and closely aligned with the user&apos;s refined needs. This use case demonstrates how advanced data processing and AI-driven technologies can be seamlessly integrated to create a powerful tool for semantic document searching on SAP BTP.
+Problem- Implementing a semantic search CAP app on SAP BTP involves complex LLM integrations and ensuring data privacy can be difficult. Other challenges include interpreting diverse natural language queries, improving search precision and efficiency, boosting operations and decision-making.
+Solution- This AI solution uses CAP, LLMs, and SAP AI Core models with the SAP HANA Cloud Vector Engine for enhanced search precision. It supports natural language searches in a structured document database, interpreting queries and using attributes like text, date, and language.
+
+The system generates SQL WHERE clauses from inputs, allowing users to adjust search parameters in real-time to maintain relevant results, boosting accuracy and efficiency.
+Benefits- This AI solution enhances data retrieval through natural language processing, integrating Large Language Models with the Cloud Application Programming Model for complex searches in everyday language. It understands queries contextually, delivering precise results swiftly, improving user experience by offering intuitive access to information.
+
+Users can dynamically adjust search parameters, tailoring results to current needs, boosting productivity and decision-making in business.
+
+Required Services-
+Destination
+SAP AI Core
+SAP AI Launchpad
+SAP Authorization and Trust Management Service
+SAP BTP, Cloud Foundry Runtime
+
+Effort- 2-4 days
+Lob- Asset Management, Commerce, (Industry specific LoB)
+Industry-
+FocusTags- Artificial Intelligence
+
+Prerequisites- Node.js (v18+ recommended)
+Cloud Foundry Subaccount
+Access to generative AI hub (SAP AI Core with service plan extended)
+Access to SAP HANA Cloud&apos;s Vector Engine (QRC 1/2024 or later)
+
+FaQs-
+
+Project Board
+Use Case Phases ( Board Columns ) - Intro, Setup , Configuration, Validation and Test, Extend, Complete
+Use Case Steps ( Board Cards )-
+Overview
+, Requirements
+, Setup and Deploy
+, Data Model
+, UI Setup
+, Backend and UI
+, Enhancements
+, Complete the Mission```Develop a Semantic Search app leveraging Generative AI Hub &amp; SAP HANA Cloud's Vector Engine
+Use Case -Develop a Semantic Search app leveraging Generative AI Hub &amp; SAP HANA Cloud&apos;s Vector Engine
+This use case outlines the capabilities of a single-tenant semantic search CAP application tailored for SAP Business Technology Platform (SAP BTP). The application leverages Large Language Models (LLMs) to interpret search queries and extract key attributes necessary for executing semantic searches. This involves embedding technologies facilitated by the SAP HANA Cloud Vector Engine, which enhances the precision and efficiency of similarity searches.
+
+The application integrates the Cloud Application Programming Model (CAP) with LLMs and Embedding Models provided by the Generative AI Hub in SAP AI Core. This synergy allows for dynamic and intelligent search capabilities within a structured data environment.
+
+Furthermore, users can refine their search parameters on-the-fly, adding or adjusting dimensions to their search criteria. This feature ensures that the search results remain relevant and closely aligned with the user&apos;s refined needs. This use case demonstrates how advanced data processing and AI-driven technologies can be seamlessly integrated to create a powerful tool for semantic document searching on SAP BTP.
+Problem- Implementing a semantic search CAP app on SAP BTP involves complex LLM integrations and ensuring data privacy can be difficult. Other challenges include interpreting diverse natural language queries, improving search precision and efficiency, boosting operations and decision-making.
+Solution- This AI solution uses CAP, LLMs, and SAP AI Core models with the SAP HANA Cloud Vector Engine for enhanced search precision. It supports natural language searches in a structured document database, interpreting queries and using attributes like text, date, and language.
+
+The system generates SQL WHERE clauses from inputs, allowing users to adjust search parameters in real-time to maintain relevant results, boosting accuracy and efficiency.
+Benefits- This AI solution enhances data retrieval through natural language processing, integrating Large Language Models with the Cloud Application Programming Model for complex searches in everyday language. It understands queries contextually, delivering precise results swiftly, improving user experience by offering intuitive access to information.
+
+Users can dynamically adjust search parameters, tailoring results to current needs, boosting productivity and decision-making in business.```Develop a Semantic Search app leveraging Generative AI Hub &amp; SAP HANA Cloud's Vector Engine
+Use Case -Develop a Semantic Search app leveraging Generative AI Hub & SAP HANA Cloud's Vector Engine
+This use case outlines the capabilities of a single-tenant semantic search CAP application tailored for SAP Business Technology Platform (SAP BTP). The application leverages Large Language Models (LLMs) to interpret search queries and extract key attributes necessary for executing semantic searches. This involves embedding technologies facilitated by the SAP HANA Cloud Vector Engine, which enhances the precision and efficiency of similarity searches.
+
+The application integrates the Cloud Application Programming Model (CAP) with LLMs and Embedding Models provided by the Generative AI Hub in SAP AI Core. This synergy allows for dynamic and intelligent search capabilities within a structured data environment.
+
+Furthermore, users can refine their search parameters on-the-fly, adding or adjusting dimensions to their search criteria. This feature ensures that the search results remain relevant and closely aligned with the user's refined needs. This use case demonstrates how advanced data processing and AI-driven technologies can be seamlessly integrated to create a powerful tool for semantic document searching on SAP BTP.
+
+Problem- Implementing a semantic search CAP app on SAP BTP involves complex LLM integrations and ensuring data privacy can be difficult. Other challenges include interpreting diverse natural language queries, improving search precision and efficiency, boosting operations and decision-making.
+Solution- This AI solution uses CAP, LLMs, and SAP AI Core models with the SAP HANA Cloud Vector Engine for enhanced search precision. It supports natural language searches in a structured document database, interpreting queries and using attributes like text, date, and language.
+
+The system generates SQL WHERE clauses from inputs, allowing users to adjust search parameters in real-time to maintain relevant results, boosting accuracy and efficiency.
+Benefits- This AI solution enhances data retrieval through natural language processing, integrating Large Language Models with the Cloud Application Programming Model for complex searches in everyday language. It understands queries contextually, delivering precise results swiftly, improving user experience by offering intuitive access to information.
+
+Users can dynamically adjust search parameters, tailoring results to current needs, boosting productivity and decision-making in business.```Develop a Semantic Search app leveraging Generative AI Hub &amp; SAP HANA Cloud's Vector Engine
+This feature ensures that the search results remain relevant and closely aligned with the user's refined needs. This use case demonstrates how advanced data processing and AI-driven technologies can be seamlessly integrated to create a powerful tool for semantic document searching on SAP BTP.
+
+Problem- Implementing a semantic search CAP app on SAP BTP involves complex LLM integrations and ensuring data privacy can be difficult. Other challenges include interpreting diverse natural language queries, improving search precision and efficiency, boosting operations and decision-making.
+Solution- This AI solution uses CAP, LLMs, and SAP AI Core models with the SAP HANA Cloud Vector Engine for enhanced search precision. It supports natural language searches in a structured document database, interpreting queries and using attributes like text, date, and language.
+
+The system generates SQL WHERE clauses from inputs, allowing users to adjust search parameters in real-time to maintain relevant results, boosting accuracy and efficiency.
+Benefits- This AI solution enhances data retrieval through natural language processing, integrating Large Language Models with the Cloud Application Programming Model for complex searches in everyday language. It understands queries contextually, delivering precise results swiftly, improving user experience by offering intuitive access to information.
+
+Users can dynamically adjust search parameters, tailoring results to current needs, boosting productivity and decision-making in business.
+
+Required Services ( BTP Services , SAP Applications and Others) -
+Destination
+SAP AI Core
+SAP AI Launchpad
+SAP Authorization and Trust Management Service
+SAP BTP, Cloud Foundry Runtime
+
+Effort ( Time required for implementing mission) - 2-4 days
+This Mission is applicable for Lob- Asset Management, Omnichannel Commerce, (Industry specific LoB)
+This Mission is applicable for Industries-
+FocusTags- Artificial Intelligence
+
+Prerequisites ( Pre-req for mission) - Node.js (v18+ recommended)
+Cloud Foundry Subaccount
+Access to generative AI hub (SAP AI Core with service plan extended)
+Access to SAP HANA Cloud's Vector Engine (QRC 1/2024 or later)
+
+Customer References/Stories -
+CustomerName:Döhler
+Revolutionizing Product Discovery 1with Natural Language Access
+A natural language interface for the Döhler customer portal lets users search for products using simple queries. Results can be incrementally refined.```AI in SAP Batch Release Hub for Life Sciences 
+
+This section describes the AI features that are available in SAP Batch Release Hub for Life Sciences.
+
+Use of AI in SAP Batch Release Hub for Life Sciences is optional, and customers can decide based on their own business needs whether they want to use AI. The AI features can be turned on or off for the entire solution in the Manage Release Configurations app under ![Start of the navigation path](URL) Make General Settings ![Next navigation step](URL) AI![End of the navigation path](URL). If AI features are turned off in your configuration settings, you will not see any AI-related options in your apps.
+
+The AI-assisted features are intended to help you complete your work while ensuring that you have agency and transparency. You retain the control and final say in all decisions.
+
+Note
+
+AI in SAP Batch Release Hub for Life Sciences does not provide the technical capabilities to support the collection, processing, and storage of sensitive/personal data.
+
+Disclaimer: While the embedded AI feature can help to get the proposed result, customers must validate the data received from the connecting systems and in turn validate the proposed results manually before accepting the proposed result. The accountability of the end result will be solely with the customer.
+
+
+
+[AI Usage Acknowledgment Statement](URL)
+Learn about the AI usage acknowledgment statement, which you must accept as a one-time activity before using the AI-assisted features.
+[SAP Batch Release Hub, AI-Assisted Custom Release Checks](URL)
+SAP Business AI in SAP Batch Release Hub for Life Sciences uses generative AI to analyze the documents attached to custom release checks and propose results for the release check items.
+[Using SAP's Generative AI Copilot, Joule](URL)
+Learn how to use Joule, SAP's generative AI copilot, to help you manage your release decision workload and make informed decisions in SAP Batch Release Hub for Life Sciences.
+
+
+
+
+```SAP Batch Release Hub for Life Sciences, custom release checks
+AI Feature -SAP Batch Release Hub for Life Sciences, custom release checks
+Product -SAP Batch Release Hub for Life Sciences
+
+This feature analyzes the documents attached to custom release checks required within the batch release process. This reduces the manual effort for the Qualified Persons (QP) by proposing AI generated results directly in the UI for faster review, check of references and sign off. The solution empowers the QPs to save a significant amount of time as extensive search in the big documents is not needed anymore. Instead, end users can focus on reviewing the provided recommendations, while keeping the role of the final decision-maker.
+Benefits
+Fast review and sign off of AI generated proposals directly in the UI via check of referenced documents
+The generative AI-powered analysis of documents attached to custom release checks reduces manual effort for the qualified persons
+Extensive search in big documents by qualified persons is not needed anymore, empowering the end users to ensure compliance and quality
+
+This is a Premium AI Feature requiring specific Entitlements/Subscriptions.
+
+Works With-
+Minimum Required Version-
+AI Type- AI Package
+Applicable Industries- Cross-Industry, Life Sciences
+CSN Component- IS-LS-BRH-APP
+
+Business Values- Increase compliance and quality of batch release process, Enhance user experience during processing of custom release checks, Up to 60% improvement in qualified persons productivity
+
+Resources-
+[Product - SAP Help Portal](URL)
+[Product - Security](URL)
+[Product - What's New](URL)
+[Product - Community](URL)
+[Business Value 3-Pager](URL)
+[Product - Learning Journey](URL)
+[Product - Feature Scope Description](URL)
+[Initial Setup - SAP Help Portal](URL)
+```User Guide for SAP Batch Release Hub for Life Sciences
+7.1 AI Usage Acknowledgment Statement Learn about the AI usage acknowledgment statement, which you must accept as a one-time activity before using the AI-assisted features. If AI-assisted features are enabled in SAP Batch Release Hub for Life Sciences, an acknowledgment message is displayed when you choose any AI-assisted capability. This message informs you about the possible inaccuracies of the results generated by AI systems and recommends you to review all AI-generated content before completing your work. Once you accept the acknowledgment as a one-time activity, the message doesn't reappear in subsequent sessions when you engage with AI-assisted features across the SAP Batch Release Hub for Life Sciences solution. However, if the acknowledgment statement is revised at any point later, the acknowledgment message will be displayed again. You must review and accept the updated acknowledgment statement before you can continue using any AI-assisted feature. 174 PUBLIC User Guide for SAP Batch Release Hub for Life Sciences AI in SAP Batch Release Hub for Life Sciences 7.2 SAP Batch Release Hub, AI-Assisted Custom Release Checks SAP Business AI in SAP Batch Release Hub for Life Sciences uses generative AI to analyze the documents attached to custom release checks and propose results for the release check items. Generative AI in SAP Batch Release Hub for Life Sciences supports in analyzing unstructured documents for custom release checks, streamlining what was previously a manual process. You upload relevant documents and initiate AI-proposed results, which you then review and validate. Your productivity is improved while human oversight is retained throughout the complete process. SAP Batch Release Hub, AI-assisted custom release checks help you to save a significant amount of time by focusing on reviewing the recommendations provided, while keeping the role of the final decision-maker. This accelerates the batch release process, while empowering you to ensure compliance and quality. You can learn more on the SAP Discovery Center: SAP Batch Release Hub for Life Sciences, custom release checks Key Benefits • Generative AI-powered analysis of documents and images • Reduction of manual effort • Faster review, check of references, and sign off • Extensive searching is no longer needed • Batch release decisions are accelerated • User experience is improved Custom Release Checks in Detail Custom release checks are used to integrate checking activities that must be completed manually, without a connected source system.```Document Grounding
+AI Feature -Document Grounding
+Product -Document Grounding
+
+Document grounding is a foundational Joule capability which can provide more comprehensive responses by drawing from business documents located in SAP and third-party repositories.
+Benefits
+Reduce hallucinations or incorrect generated information
+Improve user self-reliance and user satisfaction
+Improve the reliability and applicability of generated content
+
+This is a Premium AI Feature requiring specific Entitlements/Subscriptions.
+
+Works With-
+Minimum Required Version-
+AI Type- AI Package
+Applicable Industries- Cross-Industry
+CSN Component- CA-ML-RAGE
+
+Business Values- Up to 70% less HR time spent on ticket handling, 70% reduction in employee time needed to investigate HR policies
+
+Resources-
+[Initial Setup - SAP Help Portal](URL)
+```Generative AI Features for Enhancing Descriptions 
+
+Generative Artificial Intelligence can be leveraged to streamline workforce management and procurement processes. Customers with access can use Generative AI to enhance job posting descriptions and statement of work descriptions, and translate job posting descriptions to your company's supported languages.
+
+Crafting high-quality, detailed descriptions can be time consuming and challenging for users who create job postings and statements of work. The use of AI to enhance descriptions can streamline this activity and lessen cycle times for hiring workers and procuring services. In addition, to ensure that job descriptions are clearly understood by regional suppliers, AI can be used to translate the text into languages supported by your organization.
+
+These features provide cutting-edge AI capabilities to empower you to craft well-structured, comprehensive descriptions that will ensure your suppliers can meet your needs with greater accuracy.
+
+Note
+
+Customers must purchase the SAP AI Unit SKU to access these premium Generative AI features.
+
+
+
+[AI-Assisted Event Hierarchy Generation](URL)
+Generative AI is used to automate event hierarchy creation from prompts that the buyer selects. The selected prompts identify the relevant content and the AI generates a structured, accurate draft event hierarchy.
+[AI-Assisted Job Description Creation](URL)
+The AI-Assisted Job Description Creation feature can be used to generate a job posting description using aspects of the job posting.
+[AI-Assisted SOW Description Creation](URL)
+The AI-Assisted SOW Description Creation feature can be used to generate a statement of work description using aspects of the statement of work.
+[AI-Assisted Job Description Translation](URL)
+The AI-Assisted Job Description Translation feature can be used to translate a job posting description to languages that are enabled for your company.
+[SOW Creation with SAP Document AI](URL)
+SAP Fieldglass leverages SAP Document AI to automate statement of work creation using information extraction from uploaded documents. This streamlined process cuts manual effort, reduces errors, and saves costs by generating accurate, structured draft statements of work from diverse source documents.
+
+
+
+
+```SAP Batch Release Hub, AI-Assisted Custom Release Checks 
+
+SAP Business AI in SAP Batch Release Hub for Life Sciences uses generative AI to analyze the documents attached to custom release checks and propose results for the release check items.
+
+Generative AI in SAP Batch Release Hub for Life Sciences supports in analyzing unstructured documents for custom release checks, streamlining what was previously a manual process. You upload relevant documents and initiate AI-proposed results, which you then review and validate. Your productivity is improved while human oversight is retained throughout the complete process.
+
+SAP Batch Release Hub, AI-assisted custom release checks help you to save a significant amount of time by focusing on reviewing the recommendations provided, while keeping the role of the final decision-maker. This accelerates the batch release process, while empowering you to ensure compliance and quality.
+
+You can learn more on the SAP Discovery Center: [SAP Batch Release Hub for Life Sciences, custom release checks![Information published on SAP site](URL)](URL)
+
+
+
+ Key Benefits 
+
+
+
+* Generative AI-powered analysis of documents and images
+* Reduction of manual effort
+* Faster review, check of references, and sign off
+* Extensive searching is no longer needed
+* Batch release decisions are accelerated
+* User experience is improved
+
+
+
+
+
+
+
+ Custom Release Checks in Detail 
+
+Custom release checks are used to integrate checking activities that must be completed manually, without a connected source system. For example, you can use a custom release check to ensure that certain information is captured and validated. A custom release check includes a list of checklist items. Each checklist item is defined with the following information:
+
+
+
+* Step: The number of the item in the checklist sequence
+* Item ID and Item Description: A unique ID and meaningful description
+* Condition for Acceptance: Free text that describes what the checklist item requires
+
+If you allow an AI-based proposal, the Condition for Acceptance is mandatory and should be worded carefully, because the AI generation uses the condition for acceptance as the basis for proposing a sensible result.
+```
+
+### How it works:
+- **Prompt Template**: Clearly instructs the AI model to use context retrieved from documents to answer the user's question.
+- **DocumentGroundingFilter**: Configured to specifically search SAP Help documentation.
+- **OrchestrationService**: Executes the grounding module, retrieves relevant documents, and feeds context directly into the model prompt.
+
+<br>
+
+### Grounding example 2
+
+```python
+prompt = Template(messages=[
+    SystemMessage("You are an assistant that answers questions based strictly on the provided context."),
+    UserMessage("""Context: {{ ?grounding_response }}
+                   Question: {{ ?userquestion }}"""),
+])
+
+
+# Configure grounding to use your custom vector-based repository
+filters = [
+    DocumentGroundingFilter(
+        id="vector",
+        search_config=GroundingFilterSearch(max_chunk_count=3),
+        data_repository_type=DataRepositoryType.VECTOR.value
+    )
+]
+
+
+grounding_config = GroundingModule(
+    type=GroundingType.DOCUMENT_GROUNDING_SERVICE.value,
+    config=DocumentGrounding(
+        input_params=["userquestion"],
+        output_param="grounding_response",
+        filters=filters
+    )
+)
+
+
+# Combine into OrchestrationConfig
+config = OrchestrationConfig(
+    template=prompt,
+    llm=llm,
+    grounding=grounding_config
+)
+
+
+# Example query to retrieve context specifically from the SAP AI Ethics policy
+user_question = "What are the chances that SAP will help my government to create a crowd surveillance system for large events?"
+
+response = orchestration_service.run(
+    config=config,
+    template_values=[TemplateValue("userquestion", user_question)]
+)
+
+
+# Display AI-generated response
+print("AI Response based on the Document grounding repository:\n")
+print(response.orchestration_result.choices[0].message.content)
+```
+
+```sh
+AI Response based on the Document grounding repository:
+
+I don't have any context provided that discusses SAP's involvement in crowd surveillance systems for government events.
+
+To give you an accurate answer, I would need relevant documentation or information about:
+- SAP's stated policies on surveillance technology
+- Any existing government contracts or projects SAP has undertaken
+- SAP's ethical guidelines regarding surveillance applications
+
+I'd recommend:
+1. Checking SAP's official website and corporate responsibility statements
+2. Reviewing their public contracts and case studies
+3. Contacting SAP directly through their government/public sector division
+
+Without specific context to reference, I cannot make claims about SAP's likelihood to support such a project.
+```
+
+```python
+# Display the raw retrieved grounding context for reference
+print("\nRetrieved Context (for debugging or verification):\n")
+print(response.module_results.grounding.data['grounding_result'])
+```
+
+```sh
+Retrieved Context (for debugging or verification):
+```
+
+<br>
+
+### How it works:
+- The `DocumentGroundingFilter` specifically points to your vector-based document repository, identified by its unique ID.
+- The query clearly focuses on the SAP AI Ethics policy, ensuring the retrieved context is directly relevant to the question.
+- The raw retrieved context is also displayed to help validate and understand precisely what information the grounding module used for generating the answer.
 
 
 
