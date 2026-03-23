@@ -1,0 +1,44 @@
+{
+  "examples": [
+    {
+      "language": "de-DE",
+      "public_figure": "Alice Weidel",
+      "platform": "X (Twitter)",
+      "username": "@Alice_Weidel",
+      "content": "Das Jahr beginnt mit dem Zensurgesetz und der Unterwerfung unserer Behörden vor den importierten, marodierenden, grapschenden, prügelnden, Messer stechenden Migrantenmobs, an die wir uns gefälligst gewöhnen sollen. Die deutsche Polizei kommuniziert mittlerweile auf Arabisch, obwohl die Amtssprache in unserem Land Deutsch ist.",
+      "url": "https://x.com/alice_weidel/status/947875747443675137"
+    },
+    {
+      "language": "en-GB",
+      "public_figure": "Nigel Farage",
+      "platform": "X (Twitter)",
+      "username": "@Nigel_Farage",
+      "content": "I've said it before and I'll say it again. This is an invasion.",
+      "url": "https://twitter.com/Nigel_Farage/status/1294314902010695682"
+    },
+    {
+      "language": "fr-FR",
+      "public_figure": "Éric Zemmour",
+      "platform": "X (Twitter)",
+      "username": "@ZemmourEric",
+      "content": "Derrière les cris de victoire, dès l'année qui vient, 500.000 nouveaux étrangers pourront donc encore débarquer sur le sol français avec la complicité de nos élites.",
+      "url": "https://twitter.com/ZemmourEric/status/1737940504845623309"
+    },
+    {
+      "language": "pt-BR",
+      "public_figure": "Jair Bolsonaro",
+      "platform": "X (Twitter)",
+      "username": "@jairbolsonaro",
+      "content": "Que Deus abençoe o Brasil e os Estados Unidos, nações que seguem como símbolos de resistência à tirania. Nossos povos não podem ser calados.",
+      "url": "https://x.com/jairbolsonaro/status/1944486239216062825"
+    },
+    {
+      "language": "es-ES",
+      "public_figure": "Santiago Abascal",
+      "platform": "X (Twitter)",
+      "username": "@Santi_ABASCAL",
+      "content": "Ese barco de negreros hay que confiscarlo y HUNDIRLO. Para que sirva de advertencia de cuál va a ser el final que les espera a todos los multimillonarios y políticos que promuevan la invasión de Europa.",
+      "url": "https://x.com/Santi_ABASCAL/status/1960787876884476271"
+    }
+  ]
+}
