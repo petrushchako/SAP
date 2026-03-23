@@ -110,6 +110,17 @@ ai_response = result.orchestration_result.choices[0].message.content
 print("Extracted JSON:", ai_response)
 ```
 
+```sh
+    Extracted JSON: ```json
+    {
+      "sender": "bob@company.com",
+      "subject": "Quarterly Report Discussion",
+      "body": "Hello Team,\n\nLet's schedule a call to talk about the Q2 report next week.\nRegards,\nBob"
+    }
+    ```
+```
+
+
 > As you can see, the model includes additional formatting text (```json and ```) around the actual JSON output. While this is readable for humans, it's not ideal for applications that need to parse the JSON directly.
 
 
@@ -175,9 +186,107 @@ print(parsed_json)
 print("\nSender:", parsed_json.get("sender"))
 ```
 
+```sh
+    Clean JSON Output: {
+      "sender": "bob@company.com",
+      "subject": "Quarterly Report Discussion",
+      "body": "Hello Team, Let's schedule a call to talk about the Q2 report next week. Regards, Bob"
+    }
+    
+    Parsed Dictionary Object:
+    {'sender': 'bob@company.com', 'subject': 'Quarterly Report Discussion', 'body': "Hello Team, Let's schedule a call to talk about the Q2 report next week. Regards, Bob"}
+    
+    Sender: bob@company.com
+```
+
 #### Summary:
 - **LLM**: Sets up the desired model (in this case, “gemini-2.5-flash”) and optional parameters like temperature. Other models you can use in the present deployment are: ['anthropic--claude-4-sonnet, gemini-2.5-pro, 'gpt-5', 'gpt-5-mini', ]
 - **Template**: Outlines the prompt structure with placeholders (e.g., {{?topic}}).
 - **OrchestrationConfig**: Ties everything together.
 - **OrchestrationService**: Executes the pipeline, sending your prompt to the chosen LLM.
 - **Run**: Substitutes the {{?topic}} placeholder and prints the model’s output.
+
+
+<br><br><br>
+
+## Lesson 2: Data Masking and Privacy
+#### Introduction
+In enterprise settings, large language models frequently process sensitive user or corporate data. Data Masking is a core capability to automatically anonymize or pseudonymize personal information—like names, phone numbers, or emails—before it’s sent to the model. By applying data masking, you protect users’ privacy while still benefiting from AI-driven insights.
+
+### Key Concepts
+- **Anonymization vs. Pseudonymization**:
+    - **Anonymization**: Irreversibly replaces personal data with placeholders (e.g., “[PERSON]”).
+    - **Pseudonymization**: Uses reversible tokens (e.g., “[PERSON_ID_123]”) that can later be mapped back if needed.
+- **Profile Entities**: Predefined categories of sensitive data, such as EMAIL, PHONE, PERSON, ORG, and so on.
+- **SAPDataPrivacyIntegration**: A component of the SAP Generative AI Hub SDK that handles detection and masking of sensitive data in prompts or outputs.
+
+
+Below is a simplified example using the SAP Cloud SDK for AI to set up an orchestration pipeline with data masking. We’ll focus on anonymizing personal data in the user’s input:
+
+```python
+# Import the data masking tools
+from gen_ai_hub.orchestration.models.data_masking import DataMasking
+from gen_ai_hub.orchestration.models.sap_data_privacy_integration import (
+    SAPDataPrivacyIntegration, MaskingMethod, ProfileEntity
+)
+
+# 1. Define the LLM
+llm = LLM(
+    name="mistralai--mistral-small-instruct",
+    version="latest",
+    parameters={"temperature": 0.2, "max_tokens": 150},
+)
+
+# 2. Create a prompt template that includes user text
+template = Template(
+    messages=[
+        UserMessage("User input: {{?user_text}}")
+    ]
+)
+
+# 3. Configure Data Masking (anonymize person and phone entities)
+data_masking = DataMasking(
+    providers=[
+        SAPDataPrivacyIntegration(
+            method=MaskingMethod.ANONYMIZATION,
+            entities=[ProfileEntity.PERSON, ProfileEntity.PHONE]
+        )
+    ]
+)
+
+# 4. Build an OrchestrationConfig
+config = OrchestrationConfig(
+    template=template,
+    llm=llm
+)
+
+# 5. Attach Data Masking to the config
+config.data_masking = data_masking
+
+# 6. Run a test
+result = orchestration_service.run(config=config,
+    template_values=[TemplateValue(
+        name="user_text",
+        value="Hello, my name is John Doe and my phone number is +1-202-555-0147."
+    )]
+)
+
+# Print the final output
+print("Masked AI Output:", result.orchestration_result.choices[0].message.content)
+```
+
+```sh
+Masked AI Output: It seems like you're providing some personal information, but it's masked. If you need assistance with something specific, feel free to let me know how I can help! If you're looking to share information securely, please ensure you're using a secure method and that you trust the recipient.
+```
+
+> See the Orchestration service documentation to know more about other [masking types](https://help.sap.com/doc/generative-ai-hub-sdk/CLOUD/en-US/_reference/orchestration-service.html#masking-types)
+
+
+
+### Summary
+- `DataMasking` is set to anonymization, targeting `ProfileEntity.PERSON` and `ProfileEntity.PHONE`.
+- The user’s input—`“John Doe”` and a phone number—is automatically detected and replaced with a placeholder.
+- The LLM then receives already-masked content, safeguarding sensitive data.
+
+
+
